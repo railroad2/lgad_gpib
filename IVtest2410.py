@@ -21,12 +21,12 @@ for r in rlst:
 k2410.print_name()
 
 
-sensorname = "FBK_2022v1_2x2_13"
-npad = 4
+sensorname = "FBK_2022v1_2x2_13_T9"
+npad = 1
 
 v0 = 0
 v1 = -250
-dv = 1
+dv = 1 
 if dv:
     nstp = int(abs(v1 - v0)/dv)+1
 else:
@@ -45,7 +45,7 @@ except:
 ofname = f"I-V_2410_{sensorname}_PAD{npad}_{time.strftime('%Y-%m-%dT%H.%M.%S')}_{v0}_{v1}{option}"
 ofname = opath + "\\" + ofname
 
-dat = k2410.measure_IV(v0, v1, nstp, ofname=ofname)
+dat = k2410.measure_IV(v0, v1, nstp, navg=10, ofname=ofname)
 k2410.plot_IV(ofname=ofname)
 
 print("finished!")

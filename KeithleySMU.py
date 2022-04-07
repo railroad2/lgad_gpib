@@ -60,7 +60,7 @@ class KeithleySMU():
         self.inst.write("OUTP OFF")
         self.onoff = 0
 
-    def measure_IV(self, vstart, vstop, npts=11, ofname=None):
+    def measure_IV(self, vstart, vstop, npts=11, navg=1, ofname=None):
         varr = np.linspace(vstart, vstop, npts)
         varr_meas = []
         iarr = []
@@ -71,8 +71,19 @@ class KeithleySMU():
 
         for v in varr:
             self.set_source_volt(v)
-            v_meas, i = self.read()
-            print (v, i, v_meas)
+            v_meas_list = []
+            i_list = []
+            for i in range(navg):
+                v_meas, i = self.read()
+                v_meas_list.append(v_meas)
+                i_list.append(i)
+                
+            v_meas = np.average(v_meas_list)
+            i = np.average(i_list)
+            v_std = np.std(v_meas)
+            i_std = np.std(i_list)
+            print (v, i, v_meas, v_std, i_std)
+
             varr_meas.append(v_meas)
             iarr.append(i)
 

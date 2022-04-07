@@ -36,15 +36,14 @@ def readdata(flist, pathbase=""):
 
 if __name__=="__main__":
     pathbase = r"C:\Users\summa\OneDrive\Works\2022-02-07_CMS LGAD\I-V test\2022-04-06_FBK_2022v1_2x2_13"
-    
-    """
+
     flist_IV = [
         "I-V_2410_FBK_2022v1_2x2_13_PAD1_2022-04-06T15.16.21_0_-250_FloatingLO.txt",
         "I-V_2410_FBK_2022v1_2x2_13_PAD2_2022-04-06T15.18.48_0_-250_FloatingLO.txt",
         #"I-V_2410_FBK_2022v1_2x2_13_PAD3_2022-04-06T15.19.55_0_-250_FloatingLO.txt",
         "I-V_2410_FBK_2022v1_2x2_13_PAD3_2022-04-06T15.10.31_0_-250_LOFLOAT.txt",
         "I-V_2410_FBK_2022v1_2x2_13_PAD4_2022-04-06T15.24.49_0_-250_FloatingLO.txt" ]
-    """
+
     flist_breakdown = [
         "I-V_2410_FBK_2022v1_2x2_13_PAD1_2022-04-06T15.54.52_0_-400_Breakdown.txt",
         "I-V_2410_FBK_2022v1_2x2_13_PAD2_2022-04-06T15.59.50_0_-400_Breakdown.txt",
@@ -52,6 +51,16 @@ if __name__=="__main__":
         "I-V_2410_FBK_2022v1_2x2_13_PAD4_2022-04-06T16.02.51_0_-400_Breakdown.txt",
     ]
 
-    data = readdata(flist_breakdown, pathbase)
+    pathbase_T9 = r"C:\Users\summa\OneDrive\Works\2022-02-07_CMS LGAD\I-V test\2022-04-07_FBK_2022v1_2x2_13_T9"
+    flist_T9 = [
+        "I-V_2410_FBK_2022v1_2x2_13_T9_PAD4_2022-04-07T13.48.08_0_-250_AfterBreakdown.txt",
+        "I-V_2410_FBK_2022v1_2x2_13_T9_PAD1_2022-04-07T13.49.11_0_-250_AfterBreakdown.txt",
+        "I-V_2410_FBK_2022v1_2x2_13_T9_PAD2_2022-04-07T13.50.06_0_-250_AfterBreakdown.txt",
+        "I-V_2410_FBK_2022v1_2x2_13_T9_PAD3_2022-04-07T13.51.12_0_-250_AfterBreakdown.txt",
+        "I-V_2410_FBK_2022v1_2x2_13_T9_PAD3_2022-04-07T13.51.44_0_-250_AfterBreakdown.txt",
+        "I-V_2410_FBK_2022v1_2x2_13_T9_PAD3_2022-04-07T13.52.16_0_-250_AfterBreakdown.txt",
+        "I-V_2410_FBK_2022v1_2x2_13_T9_PAD4_2022-04-07T13.53.09_0_-250_AfterBreakdown.txt",
+    ]
+    data = readdata(flist_T9, pathbase_T9)
     print(data.shape)
     plot(data, True)
