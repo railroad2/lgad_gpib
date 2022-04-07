@@ -9,7 +9,7 @@ import pyvisa
 class KeithleySMU():
     inst = []
     onoff = 0
-    delay = 0.005
+    delay = 0.1
 
     def __init__(self, rname):
         rm = pyvisa.ResourceManager()
@@ -42,7 +42,6 @@ class KeithleySMU():
         self.inst.write(":FORM:ELEM VOLT,CURR")
 
     def read(self):
-        time.sleep(self.delay)
         val = self.inst.query(":READ?")
         val = val.strip()
         val = val.split(',') 
@@ -51,6 +50,7 @@ class KeithleySMU():
 
     def set_source_volt(self, volt):
         self.inst.write(f":SOUR:VOLT:LEV {volt}")
+        time.sleep(self.delay)
 
     def output_on(self):
         self.inst.write("OUTP ON")
@@ -64,6 +64,8 @@ class KeithleySMU():
         varr = np.linspace(vstart, vstop, npts)
         varr_meas = []
         iarr = []
+        vstd_arr = []
+        istd_arr = []
         self.initialize()
         self.inst.write(":FORM:ELEM VOLT,CURR")
         self.set_source_volt(0)
@@ -82,10 +84,13 @@ class KeithleySMU():
             i = np.average(i_list)
             v_std = np.std(v_meas)
             i_std = np.std(i_list)
+            
             print (v, i, v_meas, v_std, i_std)
 
             varr_meas.append(v_meas)
             iarr.append(i)
+            vstd_arr.append(v_std)
+            istd_arr.append(i_std)
 
         self.output_off()
         self.varr = varr
@@ -95,8 +100,8 @@ class KeithleySMU():
             if '.txt' not in ofname:
                 ofname += ".txt"
 
-            data = np.array([varr, iarr, varr_meas]).T
-            hdr = "V_set I_meas V_meas"
+            data = np.array([varr, iarr, varr_meas, istd_arr, vstd_arr]).T
+            hdr = f"V_set, I_meas, V_meas, I_std, V_std, Navg{navg}"
             np.savetxt(ofname, data, header=hdr)
 
         return varr, iarr, varr_meas

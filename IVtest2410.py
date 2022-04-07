@@ -27,13 +27,14 @@ npad = 1
 v0 = 0
 v1 = -250
 dv = 1 
+navg = 100
 if dv:
     nstp = int(abs(v1 - v0)/dv)+1
 else:
     nstp = 251
 
 option = ""
-option += "_AfterBreakdown"
+#option += "_AfterBreakdown"
 
 date = datetime.date.today().isoformat()
 opath = f"C:\\Users\\summa\\OneDrive\\Works\\2022-02-07_CMS LGAD\\I-V test"
@@ -42,10 +43,16 @@ try:
     os.mkdir(opath)
 except:
     pass
-ofname = f"I-V_2410_{sensorname}_PAD{npad}_{time.strftime('%Y-%m-%dT%H.%M.%S')}_{v0}_{v1}{option}"
+ofname = f"I-V_2410_{sensorname}_PAD{npad}_{time.strftime('%Y-%m-%dT%H.%M.%S')}_{v0}_{v1}"
+if navg > 1:
+    ofname += f"_navg{navg}"
+ofname += f"{option}"
 ofname = opath + "\\" + ofname
 
-dat = k2410.measure_IV(v0, v1, nstp, navg=10, ofname=ofname)
+t0 = time.time()
+dat = k2410.measure_IV(v0, v1, nstp, navg=navg, ofname=ofname)
+t1 = time.time()
+print ("Elapsed time for I-V measurement = {t1-t0} s.")
 k2410.plot_IV(ofname=ofname)
 
 print("finished!")
