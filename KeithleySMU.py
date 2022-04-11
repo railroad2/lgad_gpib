@@ -61,9 +61,9 @@ class KeithleySMU():
         self.onoff = 0
 
     def measure_IV(self, vstart, vstop, npts=11, navg=1, ofname=None):
-        varr = np.linspace(vstart, vstop, npts)
-        varr_meas = []
-        iarr = []
+        vset_arr = np.linspace(vstart, vstop, npts)
+        vmeas_arr = []
+        imeas_arr = []
         vstd_arr = []
         istd_arr = []
         self.initialize()
@@ -71,40 +71,41 @@ class KeithleySMU():
         self.set_source_volt(0)
         self.output_on()
 
-        for v in varr:
-            self.set_source_volt(v)
-            v_meas_list = []
-            i_list = []
+        for vset in vset_arr:
+            self.set_source_volt(vset)
+            vmeas_list = []
+            imeas_list = []
             for i in range(navg):
-                v_meas, i = self.read()
-                v_meas_list.append(v_meas)
-                i_list.append(i)
+                vmeas, imeas = self.read()
+                vmeas_list.append(vmeas)
+                imeas_list.append(imeas)
                 
-            v_meas = np.average(v_meas_list)
-            i = np.average(i_list)
-            v_std = np.std(v_meas)
-            i_std = np.std(i_list)
+            vmeas = np.average(vmeas_list)
+            vstd = np.std(vmeas_list)
+            imeas = np.average(imeas_list)
+            istd = np.std(imeas_list)
             
-            print (v, i, v_meas, v_std, i_std)
+            print (vset, vmeas, imeas, vstd, istd)
 
-            varr_meas.append(v_meas)
-            iarr.append(i)
-            vstd_arr.append(v_std)
-            istd_arr.append(i_std)
+            vmeas_arr.append(vmeas)
+            imeas_arr.append(imeas)
+            vstd_arr.append(vstd)
+            istd_arr.append(istd)
 
         self.output_off()
-        self.varr = varr
-        self.iarr = iarr
+        self.varr = vmeas_arr
+        self.iarr = imeas_arr
 
         if ofname is not None:
             if '.txt' not in ofname:
                 ofname += ".txt"
 
-            data = np.array([varr, iarr, varr_meas, istd_arr, vstd_arr]).T
-            hdr = f"V_set, I_meas, V_meas, I_std, V_std, Navg{navg}"
-            np.savetxt(ofname, data, header=hdr)
+            data = np.array([vset_arr, vmeas_arr, imeas_arr, vstd_arr, istd_arr]).T
+            hdr = f"I-V measurement using Keithley 2400, Navg={navg}\n" 
+            hdr += f"V_set, V_meas, I_meas, V_std, I_std"
+            np.savetxt(ofname, data, header=hdr, fmt="%+.8e")
 
-        return varr, iarr, varr_meas
+        return vset_arr, vmeas_arr, imeas_arr
 
     def plot_IV(self, varr=None, iarr=None, show=True, ofname=None):
         if varr is None:

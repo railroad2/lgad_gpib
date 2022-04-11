@@ -20,14 +20,14 @@ for r in rlst:
 
 k2410.print_name()
 
-
-sensorname = "FBK_2022v1_2x2_13_T9"
-npad = 1
+sensorname = "FBK_2022v1_2x2_33_T10"
+npad = 2
 
 v0 = 0
-v1 = -250
-dv = 1 
-navg = 100
+v1 = -300
+dv = 1
+navg = 1 
+
 if dv:
     nstp = int(abs(v1 - v0)/dv)+1
 else:
@@ -52,7 +52,7 @@ ofname = opath + "\\" + ofname
 t0 = time.time()
 dat = k2410.measure_IV(v0, v1, nstp, navg=navg, ofname=ofname)
 t1 = time.time()
-print ("Elapsed time for I-V measurement = {t1-t0} s.")
+print (f"Elapsed time for I-V measurement = {t1-t0} s.")
 k2410.plot_IV(ofname=ofname)
 
 print("finished!")

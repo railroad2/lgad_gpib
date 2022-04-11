@@ -48,8 +48,14 @@ class KeithleyPAU():
         val = self.inst.query(":READ?")
         val = val.strip()
         val = val.split(',') 
-        val = [float(v) for v in val]
-        return val
+        print (val)
+        val1 = []
+        for v in val:
+            try:
+                val1.append(float(v))
+            except ValueError:
+                val1.append(float(v[:-1])) 
+        return val1
 
     def plot_IV(self, varr, iarr, show=True, ofname=None):
         plt.plot(varr, iarr, '*-')
