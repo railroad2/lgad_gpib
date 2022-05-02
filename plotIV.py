@@ -9,17 +9,17 @@ def plot(data, Vreal=False, labels=[]):
     
     for i, d in enumerate(data):
         if Vreal:
-            xidx = 2
+            xidx = 1
         else:
             xidx = 0
 
         if len(d) == 5:
-            plt.errorbar(d[xidx], d[1], yerr=d[3], fmt='*-', label=labels[i])
+            plt.errorbar(d[xidx], d[2], yerr=d[3], fmt='*', label=labels[i])
         else:
             if labels is []:
-                plt.plot(d[xidx], d[1], '*-', label=f'PAD #{i+1}')
+                plt.plot(d[xidx], d[2], '*', label=f'PAD #{i+1}')
             else:
-                plt.plot(d[xidx], d[1], '*-', label=labels[i])
+                plt.plot(d[xidx], d[2], '*', label=labels[i])
 
 
     plt.xlabel('Voltage (V)')
@@ -75,6 +75,29 @@ if __name__=="__main__":
         'avg 100',
         'avg 100 with standard deviation',
     ]
-    data = readdata(flist_avg, pathbase_T9)
+
+    pathbase_33T10 = r"C:\Users\summa\OneDrive\Works\2022-02-07_CMS LGAD\I-V test\2022-04-11_FBK_2022v1_2x2_33_T10"
+    flist_33T10 = [
+        "I-V_2410_FBK_2022v1_2x2_33_T10_PAD1_2022-04-11T17.37.59_0_-300.txt",
+        "I-V_2410_FBK_2022v1_2x2_33_T10_PAD2_2022-04-11T17.40.10_0_-300.txt",
+        "I-V_2410_FBK_2022v1_2x2_33_T10_PAD3_2022-04-11T17.49.43_0_-300.txt",
+        "I-V_2410_FBK_2022v1_2x2_33_T10_PAD4_2022-04-11T18.08.53_0_-300.txt"
+    ]
+    
+    pathbase_53T10 = r"C:\Users\summa\OneDrive\Works\2022-02-07_CMS LGAD\I-V test\2022-04-11_FBK_2022v1_2x2_53_T10"
+    flist_53T10 = [
+        "I-V_2410_FBK_2022v1_2x2_53_T10_PAD1_2022-04-11T18.26.54_0_-300.txt",
+        "I-V_2410_FBK_2022v1_2x2_53_T10_PAD2_2022-04-11T18.42.48_0_-300.txt",
+        "I-V_2410_FBK_2022v1_2x2_53_T10_PAD3_2022-04-11T18.49.08_0_-300.txt",
+        "I-V_2410_FBK_2022v1_2x2_53_T10_PAD4_2022-04-11T18.58.06_0_-300.txt",
+    ]
+
+    labels = [
+        'PAD #1',
+        'PAD #2',
+        'PAD #3',
+        'PAD #4'
+    ]
+    data = readdata(flist_53T10, pathbase_53T10)
     print(data.shape)
     plot(data, True, labels=labels)

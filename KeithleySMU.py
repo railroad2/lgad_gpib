@@ -60,8 +60,11 @@ class KeithleySMU():
         self.inst.write("OUTP OFF")
         self.onoff = 0
 
-    def measure_IV(self, vstart, vstop, npts=11, navg=1, ofname=None):
+    def measure_IV(self, vstart, vstop, npts=11, navg=1, ofname=None, reverse=True):
         vset_arr = np.linspace(vstart, vstop, npts)
+        if reverse:
+            vset_arr = np.concatenate([vset_arr, vset_arr[::-1]])
+            
         vmeas_arr = []
         imeas_arr = []
         vstd_arr = []
