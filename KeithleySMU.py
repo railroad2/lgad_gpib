@@ -60,7 +60,7 @@ class KeithleySMU():
         self.inst.write("OUTP OFF")
         self.onoff = 0
 
-    def measure_IV(self, vstart, vstop, npts=11, navg=1, ofname=None, reverse=True):
+    def measure_IV(self, vstart, vstop, npts=11, navg=1, ofname=None, reverse=True, rtplot=True):
         vset_arr = np.linspace(vstart, vstop, npts)
         if reverse:
             vset_arr = np.concatenate([vset_arr, vset_arr[::-1]])
@@ -73,6 +73,11 @@ class KeithleySMU():
         self.inst.write(":FORM:ELEM VOLT,CURR")
         self.set_source_volt(0)
         self.output_on()
+         
+        if rtplot:
+            #plt.ion()
+            fig, ax = plt.subplots()
+            line1, = ax.plot([0], [0])
 
         for vset in vset_arr:
             self.set_source_volt(vset)
@@ -90,6 +95,13 @@ class KeithleySMU():
             
             print (vset, vmeas, imeas, vstd, istd)
 
+            if rtplot:
+                line1.set_xdata(vmeas)
+                line1.set_ydata(imeas)
+                fig.canvas.draw()
+                fig.canvas.flush_events()
+                plt.pause(0.001)
+
             vmeas_arr.append(vmeas)
             imeas_arr.append(imeas)
             vstd_arr.append(vstd)
@@ -98,6 +110,8 @@ class KeithleySMU():
         self.output_off()
         self.varr = vmeas_arr
         self.iarr = imeas_arr
+        if rtplot:
+            plt.show()
 
         if ofname is not None:
             if '.txt' not in ofname:

@@ -20,12 +20,12 @@ for r in rlst:
 
 k2410.print_name()
 
-sensorname = "FBK_2022v1_2x2_13_T10"
-npad = 2
+sensorname = "FBK_2022v1_2x2_54_T10"
+npad = 4
 
-v0 = 0
-v1 = -300
-dv = 1
+v0 = -40
+v1 = -60
+dv = 0.1
 navg = 1
 
 if dv:
@@ -35,9 +35,10 @@ else:
 
 option = ""
 #option += "_totalCurrent"
+option += "_breakdown"
 
 date = datetime.date.today().isoformat()
-opath = f"C:\\Users\\summa\\OneDrive\\Works\\2022-02-07_CMS_LGAD\\I-V test"
+opath = f"C:\\Users\\summa\\OneDrive\\Works\\2022-02-07_CMS_LGAD\\I-V_test"
 opath += f"\\{date}_{sensorname}"
 
 try:
@@ -52,7 +53,7 @@ ofname += f"{option}"
 ofname = opath + "\\" + ofname
 
 t0 = time.time()
-dat = k2410.measure_IV(v0, v1, nstp, navg=navg, ofname=ofname, reverse=True)
+dat = k2410.measure_IV(v0, v1, nstp, navg=navg, ofname=ofname, reverse=True, rtplot=False)
 t1 = time.time()
 print (f"Elapsed time for I-V measurement = {t1-t0} s.")
 k2410.plot_IV(ofname=ofname)
