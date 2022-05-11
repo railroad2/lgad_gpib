@@ -1,10 +1,11 @@
 import os
 import time
 import datetime
-#import numpy as np
-#import pylab as plt
+import signal 
+
 import pyvisa
 import KeithleySMU
+
 
 rm = pyvisa.ResourceManager()
 rlst = rm.list_resources()
@@ -20,12 +21,21 @@ for r in rlst:
 
 k2410.print_name()
 
-sensorname = "FBK_2022v1_2x2_54_T10"
-npad = 4
+def handler(signum, frame):
+    print ("User interrupt. Turning off the output ...")
+    k2410.output_off()
+    print ("WARNING: Please make sure the output is turned off!")
 
-v0 = -40
-v1 = -60
-dv = 0.1
+    exit(1)
+
+signal.signal(signal.SIGINT, handler)
+
+sensorname = "FBK_2022v1_2x2_56_T10"
+npad = 1
+
+v0 = 0
+v1 = -400
+dv = 1
 navg = 1
 
 if dv:
@@ -34,7 +44,7 @@ else:
     nstp = int(abs(v1 - v0) / 1) + 1
 
 option = ""
-#option += "_totalCurrent"
+option += "_totalCurrent"
 option += "_breakdown"
 
 date = datetime.date.today().isoformat()

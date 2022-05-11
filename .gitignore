@@ -4,3 +4,6 @@ __pycache__/KeithleyPAU.cpython-37.pyc
 __pycache__/KeithleyPAU.cpython-38.pyc
 __pycache__/KeithleySMU.cpython-37.pyc
 __pycache__/KeithleySMU.cpython-38.pyc
+build/*
+dist/*
+.qt_for_python/*
