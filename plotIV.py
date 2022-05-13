@@ -1,11 +1,24 @@
+import os
+import numpy as np
 import pylab as plt
 
-import numpy as np
+
+def label_from_fname(labels):
+    labels_new = []
+    for l in labels:
+        tmp = l.split('_')
+        l_new= '_'.join(tmp[2:8])
+        labels_new.append(l_new)
+
+    return labels_new 
 
 
-def plot(data, Vreal=False, labels=[]):
-    if len(np.shape(data)) == 2:
-        plot(np.array([data]), labels=labels)
+def plot(data, Vreal=False, labels=[], fmt="*", logx=False, logy=False):
+    try:
+        if len(np.shape(data)) == 2:
+            plot(np.array([data]), labels=labels)
+    except ValueError:
+        pass
     
     for i, d in enumerate(data):
         if Vreal:
@@ -13,13 +26,23 @@ def plot(data, Vreal=False, labels=[]):
         else:
             xidx = 0
 
+        if logx:
+            x = -1*np.log10(-1*d[xidx])
+        else:
+            x = d[xidx]
+
+        if logy:
+            y = -1*np.log10(-1*d[2])
+        else:
+            y = d[2]
+
         if len(d) == 5:
-            plt.errorbar(d[xidx], d[2], yerr=d[3], fmt='*', label=labels[i])
+            plt.errorbar(x, y, yerr=d[3], fmt=fmt, label=labels[i])
         else:
             if labels is []:
-                plt.plot(d[xidx], d[2], '*', label=f'PAD #{i+1}')
+                plt.plot(x, y, fmt=fmt, label=f'PAD #{i+1}')
             else:
-                plt.plot(d[xidx], d[2], '*', label=labels[i])
+                plt.plot(x, y, fmt=fmt, label=labels[i])
 
 
     plt.xlabel('Voltage (V)')
@@ -29,15 +52,19 @@ def plot(data, Vreal=False, labels=[]):
     plt.show()
     return
 
-def readdata(flist, pathbase=""):
+def readdata(flist, pathbase=None):
     data = []
 
     for fn in flist:
         print (fn)
-        datatmp = np.genfromtxt(pathbase + "\\" + fn)
+        if pathbase:
+            fn1 = os.path.join(pathbase, fn)
+        else:
+            fn1 = fn
+        datatmp = np.genfromtxt(fn1)
         data.append(datatmp.T)
 
-    data = np.array(data)
+    #data = np.array(data)
     return data
 
 

@@ -12,8 +12,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>557</width>
-    <height>692</height>
+    <width>513</width>
+    <height>639</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -41,7 +41,7 @@
    <number>5</number>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QCheckBox" name="checkBox_reversesweep">
+   <widget class="QCheckBox" name="checkBox_returnsweep">
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -66,7 +66,7 @@
      <string extracomment="test"/>
     </property>
     <property name="text">
-     <string>Reverse sweep</string>
+     <string>Return sweep</string>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -236,7 +236,7 @@
     <property name="title">
      <string>File name</string>
     </property>
-    <widget class="QCheckBox" name="checkBox_2">
+    <widget class="QCheckBox" name="checkBox_totalcurrent">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -249,7 +249,7 @@
       <string>Total current</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="checkBox_3">
+    <widget class="QCheckBox" name="checkBox_breakdown">
      <property name="geometry">
       <rect>
        <x>120</x>
@@ -304,7 +304,7 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_outfilename">
+    <widget class="QLineEdit" name="lineEdit_ofname">
      <property name="geometry">
       <rect>
        <x>110</x>
@@ -460,7 +460,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>557</width>
+     <width>513</width>
      <height>22</height>
     </rect>
    </property>
