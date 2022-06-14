@@ -34,7 +34,7 @@ sensorname = "FBK_2022v1_2x2_56_T10"
 npad = 1
 
 v0 = 0
-v1 = -400
+v1 = -40
 dv = 1
 navg = 1
 

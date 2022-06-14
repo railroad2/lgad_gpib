@@ -2,6 +2,7 @@ import time
 import datetime
 
 from PySide6.QtCore import Qt 
+from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import *
 from PySide6.QtUiTools import QUiLoader
 
@@ -15,7 +16,7 @@ class IVmeasurement():
     window.setMinimumSize(520, 640)
 
     Vstart = 0
-    Vstop = -100
+    Vstop = -10
     Vstep = 1
     delay = 0.01
     compl = 1e-4  # 100 uA
@@ -171,8 +172,10 @@ class IVmeasurement():
             fns.append(file.split('/')[-1])
             labels = plotIV.label_from_fname(fns)
 
-        plotIV.plot(data, labels=labels, Vreal=True, fmt='*-')
-
+        plotIV.plot(data, labels=labels, Vreal=True, fmt='*-', logy=False)
+        Vbd = plotIV.detect_breakdown(data, labels=labels)
+        self.window.plainTextEdit.insertPlainText(str(Vbd)+'\n')
+        self.window.plainTextEdit.moveCursor(QTextCursor.End)
 
 def main():
     iv = IVmeasurement()

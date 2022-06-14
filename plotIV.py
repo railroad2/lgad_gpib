@@ -20,6 +20,8 @@ def plot(data, Vreal=False, labels=[], fmt="*", logx=False, logy=False):
     except ValueError:
         pass
     
+    plt.figure(figsize=(16,12))
+    
     for i, d in enumerate(data):
         if Vreal:
             xidx = 1
@@ -50,7 +52,25 @@ def plot(data, Vreal=False, labels=[], fmt="*", logx=False, logy=False):
     plt.legend()
     plt.tight_layout()
     plt.show()
+    plt.tight_layout()
     return
+
+def detect_breakdown(data, labels=None, threshold=-1e-5):
+    Vbd = []
+    for d in data:
+        xs = d[1]
+        ys = d[2]
+        Vbdtmp = 0
+        for x, y in zip(xs, ys):
+            if y < threshold:
+                Vbdtmp = x
+                break
+                
+        Vbd.append(Vbdtmp)
+
+    print (Vbd)
+    return Vbd 
+
 
 def readdata(flist, pathbase=None):
     data = []
