@@ -9,7 +9,7 @@ import pyvisa
 class KeithleySMU():
     inst = []
     onoff = 0
-    delay = 0.1
+    delay = 0.005
 
     def __init__(self, rname):
         rm = pyvisa.ResourceManager()

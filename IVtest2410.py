@@ -30,11 +30,11 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGINT, handler)
 
-sensorname = "FBK_2022v1_2x2_56_T10"
+sensorname = "FBK_2022v1_2x2_55_T9"
 npad = 1
 
 v0 = 0
-v1 = -40
+v1 = -100
 dv = 1
 navg = 1
 
@@ -45,7 +45,7 @@ else:
 
 option = ""
 option += "_totalCurrent"
-option += "_breakdown"
+#option += "_breakdown"
 
 date = datetime.date.today().isoformat()
 opath = f"C:\\Users\\summa\\OneDrive\\Works\\2022-02-07_CMS_LGAD\\I-V_test"

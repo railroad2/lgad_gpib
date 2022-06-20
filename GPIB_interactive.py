@@ -3,10 +3,11 @@ import pyvisa
 rm = pyvisa.ResourceManager()
 rlst = rm.list_resources()
 
-for r in rlst:
-    inst = rm.open_resource(r)
-    idn = inst.query("*IDN?")
-    print (r, idn)
+print (rlst)
+#for r in rlst:
+#    inst = rm.open_resource(r)
+#    idn = inst.query("*IDN?")
+#    print (r, idn)
 
 dev = input("Select device to connect: ")
 
