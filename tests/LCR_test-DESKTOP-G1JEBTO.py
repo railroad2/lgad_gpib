@@ -22,9 +22,9 @@ def CVmeasurement(freq, return_sweep=True):
     print(inst.query('*IDN?'))
     inst.write(":MEAS:NUM-OF-TESTS 1")
     inst.write(":MEAS:FUNC1 C")
-    inst.write(":MEAS:FUNC2 R")
+    inst.write(":MEAS:FUNC2 D")
     inst.write(":meas:equ-cct par")
-    inst.write(":MEAS:SPEED med")
+    inst.write(":MEAS:SPEED slow")
     inst.write(":MEAS:LEV 0.1")
     inst.write(":MEAS:V-BIAS 0V")
     inst.write(f":MEAS:FREQ {freq}")
@@ -41,9 +41,9 @@ def CVmeasurement(freq, return_sweep=True):
     signal.signal(signal.SIGINT, handler)
 
     ## C-V
-    V0 = -20 
-    V1 = -25
-    npts = 101
+    V0 = 0
+    V1 = -40
+    npts = 41
     Varr = np.linspace(V0, V1, npts)
     if return_sweep:
         Varr = np.concatenate([Varr, Varr[::-1]])
@@ -65,6 +65,9 @@ def CVmeasurement(freq, return_sweep=True):
             C0 = float(C0)
             R0 = float(R0)
         except:
+            print (C0, R0) 
+            C0 = 0
+            R0 = 0
             break
 
         CV_arr.append(C0)
@@ -79,10 +82,7 @@ def CVmeasurement(freq, return_sweep=True):
     inst.write(":MEAS:V-BIAS 0V")
     inst.write(":MEAS:BIAS OFF")
     inst.close()
-
-    opathroot = r'C:\LGAD_test\C-V_test' 
-    Nmeas = r'measurement1'
-
+    
     fname = f'CVtest_{freq}Hz.txt'
     i = 0
     while os.path.isfile(fname):
@@ -296,7 +296,7 @@ def cftest():
 
 def cvtest():
     freq = int(1e3)
-    return_sweep = True
+    return_sweep = False
     CVmeasurement(freq, return_sweep)
     #CVmeasurement_4fnc(freq)
     plt.show()
@@ -304,8 +304,8 @@ def cvtest():
 
 
 if __name__=='__main__':
-    cftest()
-    #cvtest()
+    #cftest()
+    cvtest()
 
     #plot_cv('CVtest_1000Hz_5.txt', freq=1000)
     plt.show()

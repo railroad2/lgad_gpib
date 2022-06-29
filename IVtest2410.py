@@ -16,7 +16,7 @@ for r in rlst:
     if "GPIB" in r:
         inst = rm.open_resource(r)
         idn = inst.query("*IDN?")
-        if "2410" in idn:
+        if "2400" in idn:
             k2410 = KeithleySMU.KeithleySMU(r)
 
 k2410.print_name()
