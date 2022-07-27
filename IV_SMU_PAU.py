@@ -1,17 +1,32 @@
 import os
 import sys
 import time
-import datetime
 import pathlib
+
 sys.path.append(pathlib.Path(__file__).parent.resolve())
-sys.path.append(r'C:\Users\summa\OneDrive\Works\2022-02-07_CMS_LGAD\GPIBctrl')
+
 import numpy as np
 import pyvisa
 import pylab as plt
+import signal
+from util import mkdir, getdate
 
 smu = []
 smuI = []
 pau = []
+
+opathroot = r'C:\LGAD_test\I-V_test'
+sensorname = 'FBK_2022v1_2x2_46_T10'
+Nmeas = 'measurement2'
+
+Npad = 4
+
+V0 = 0
+V1 = -350
+npts = 351
+return_sweep = True
+
+date = getdate()
 
 def init():
     global smu, pau
@@ -24,14 +39,15 @@ def init():
     smu.write("SOUR:VOLT:MODE FIXED")
     smu.write("SOUR:VOLT:LEV 0")
     smu.write("SOUR:VOLT:RANG 200")
-    smu.write(":SENS:CURR:PROT 10e-6")
+    smu.write(":SENS:CURR:PROT 100e-6") # compliance = 100 uA
     smu.write(":SENS:FUNC \"VOLT\"")
     smu.write(":SENS:FUNC \"CURR\"")
     smu.write(":FORM:ELEM VOLT,CURR")
 
     pau.write("*RST")
     #pau.write("SYST:zch ON")
-    pau.write("curr:range 2e-6")
+    #pau.write("curr:range 2e-4")
+    pau.write("curr:range auto")
     pau.write("INIT")
     #pau.write("syst:zcor:stat off")
     #pau.write("syst:zcor:acq")
@@ -45,11 +61,21 @@ def init():
 init()
 
 def iv_smu_pau():
-    V0 = 0
-    V1 = -350
-    npts = 351
 
-    return_sweep = True
+    def handler(signum, frame):
+        print ("User interrupt. Turning off the output ...")
+        smu.write(':sour:volt:lev 0')
+        smu.write('outp off')
+        smu.close()
+        pau.close()
+        print ("WARNING: Please make sure the output is turned off!")
+
+        exit(1)
+
+    signal.signal(signal.SIGINT, handler)
+
+    # voltages start/end
+
 
     Varr = np.linspace(V0, V1, npts)
     if return_sweep:
@@ -80,28 +106,32 @@ def iv_smu_pau():
     smu.close()
     pau.close()
 
-    opathroot = r'C:\LGAD_test\I-V_test'
-    date = datetime.datetime.today().isoformat()[:10]
-    sensorname = 'FBK_2022v1_2x2_13_T9'
+    opath = os.path.join(opathroot, Nmeas, f'{date}_{sensorname}')
+    mkdir(opath)
 
-    mkdir(opathroot)
-    mkdir(os.path.join(opathroot, f'{date}_{sensorname}'))
+    fname = f'IV_SMU+PAU_{sensorname}_{date}_{V0}_{V1}_pad{Npad}'
+    ofname = os.path.join(opath, f'{fname}')
+    k=0
+    while (os.path.isfile(ofname)):
+        ofname = f'{ofname}_{k}'
+        k += 1
 
+    np.savetxt(ofname+'.txt', arr)
     ivplot(arr)
-    Npad = 1
-    ofname = f'I-V_smu+pau_{sensorname}_{date}_{V0}_{V1}_pad{Npad}.txt'
-    np.savetxt(os.path.join(opathroot, f'{date}_{sensorname}', f'{ofname}'), arr)
+    plt.savefig(ofname+'.png')
+    plt.figure()
+    ivplot(arr, yrange=(-2e-8, 0.5e-8))
+    plt.savefig(ofname+'_zoom.png')
 
-def ivplot(arr):
+def ivplot(arr, yrange=None):
     arr = np.array(arr).T
+    V = arr[0]
+    I = arr[3]
+    I[I>1e37] = min(I)
     plt.plot(arr[0], arr[3])
-    plt.show()
-
-def mkdir(path):
-    try:
-        os.mkdir(path)
-    except FileExistsError:
-        pass
+    if yrange:
+        plt.ylim(yrange)
 
 if __name__=='__main__':
     iv_smu_pau()
+    plt.show()
