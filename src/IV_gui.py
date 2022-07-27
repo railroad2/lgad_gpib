@@ -10,7 +10,7 @@ import plotIV
 
 app = QApplication()
 
-class IVmeasurement():
+class IV_gui():
     loader = QUiLoader()
     window = loader.load("IVpannel.ui")
     window.setMinimumSize(520, 640)
@@ -178,7 +178,7 @@ class IVmeasurement():
         self.window.plainTextEdit.moveCursor(QTextCursor.End)
 
 def main():
-    iv = IVmeasurement()
+    iv = IV_gui()
     app.exec()
 
 
