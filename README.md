@@ -1,1 +1,3 @@
-# IVtest_gpib
+# gpib control codes for LGAD test
+
+
