@@ -6,19 +6,24 @@ import pylab as plt
 import pyvisa
 
 class KeithleySMU():
+    # default parameters
     inst = []
     onoff = 0
-    delay = 0.005
+    srcdelay = 0.01
+    vjump_max = 10
+    vstep = 1
 
     def __init__(self, rname):
         rm = pyvisa.ResourceManager()
         self.inst = rm.open_resource(rname)
+
         idn = self.inst.query("*IDN?")
-        if '24' not in idn:
-            print ('Incorrect device is assigned...')
+        if 'MODEL 24' not in idn:
+            print ('The assigned device is not Keithley 2400 series SMU...')
             self.inst = []
-            return 
+            return -1
             
+        self.rname = rname
         self.initialize()
     
     def print_name(self):
@@ -29,116 +34,65 @@ class KeithleySMU():
         self.inst.write("*RST")
 
     def initialize(self):
-        self.onoff = 0
-        self.inst.write("*RST")
-        self.inst.write(":SOUR:VOLT:MODE FIXED")
-        self.inst.write(":SOUR:VOLT:RANG 1000")
-        self.inst.write(":SOUR:VOLT:LEV 0")
-        self.inst.write(":SENS:CURR:PROT 100E-6")
-        self.inst.write(":SENS:FUNC \"VOLT\"")
-        self.inst.write(":SENS:FUNC \"CURR\"")
-        #self.inst.write(":SENS:CURR:RANG AUTO")
-        self.inst.write(":FORM:ELEM VOLT,CURR")
+        self.reset()
+        self.inst.write(":SOUR:VOLT:MODE FIXED")  # voltage fixed mode. 
+        self.inst.write(":SOUR:VOLT:RANG 20")     # voltage range
+        self.inst.write(":SOUR:VOLT:LEV 0")       # voltage output level
+        self.inst.write(":SENS:CURR:PROT 100E-6") # current compliance, 100 uA by default
+        self.inst.write(':SENS:FUNC "VOLT"')      # voltage will be measured
+        self.inst.write(':SENS:FUNC "CURR"')      # current will be measured
+        self.inst.write(":FORM:ELEM VOLT,CURR")   # output format is (voltage, current). Both are measured values. 
 
     def read(self):
         val = self.inst.query(":READ?")
         val = val.strip()
         val = val.split(',') 
         val = [float(v) for v in val]
+
         return val
 
-    def set_source_volt(self, volt):
-        self.inst.write(f":SOUR:VOLT:LEV {volt}")
-        time.sleep(self.delay)
+    def get_source_volt(self):
+        return float(self.inst.query(":SOUR:VOLT:LEV?"))
+
+    def set_source_volt(self, vset):
+        vcurr = self.get_source_volt()
+        if abs(vset - vcurr) > self.vjump_max:
+            self._set_source_volt_slow(vset)
+
+        self.inst.write(f":SOUR:VOLT:LEV {vset}")
+        self.vcurr = vset
+        time.sleep(self.srcdelay)
+
+        return 
+
+    def _set_source_volt_slow(self, vset):
+        if self.onoff == 0:
+            print("Please turn the output on first. Terminating...")
+            return -1
+
+        print ("Please wait. Sweeping the source voltage...")
+        vcurr = self.get_source_volt()
+        vstep = self.vstep * np.sign(vset - vcurr) 
+        varr = np.arange(vcurr, vset, vstep)
+        for v in varr:
+            self.inst.write(f":SOUR:VOLT:LEV {v}")
+            self.vcurr = v
+            time.sleep(self.srcdelay)
+
+        return 0
 
     def output_on(self):
+        if abs(self.vcurr) > self.vjump_max:
+            self.inst.write(":SOUR:VOLT:LEV 0")
+            time.sleep(self.srcdelay)
+            self.set_source_volt(self, self.vcurr)
         self.inst.write("OUTP ON")
         self.onoff = 1
+
+        return 0
 
     def output_off(self):
         self.inst.write("OUTP OFF")
         self.onoff = 0
 
-    def measure_IV(self, vstart, vstop, npts=11, navg=1, ofname=None, reverse=True, rtplot=True):
-        vset_arr = np.linspace(vstart, vstop, npts)
-        if reverse:
-            vset_arr = np.concatenate([vset_arr, vset_arr[::-1]])
-            
-        vmeas_arr = []
-        imeas_arr = []
-        vstd_arr = []
-        istd_arr = []
-        self.initialize()
-        self.inst.write(":FORM:ELEM VOLT,CURR")
-        self.set_source_volt(0)
-        self.output_on()
-         
-        if rtplot:
-            #plt.ion()
-            fig, ax = plt.subplots()
-            line1, = ax.plot([0], [0])
-
-        for vset in vset_arr:
-            self.set_source_volt(vset)
-            vmeas_list = []
-            imeas_list = []
-            for i in range(navg):
-                vmeas, imeas = self.read()
-                vmeas_list.append(vmeas)
-                imeas_list.append(imeas)
-                
-            vmeas = np.average(vmeas_list)
-            vstd = np.std(vmeas_list)
-            imeas = np.average(imeas_list)
-            istd = np.std(imeas_list)
-            
-            print (vset, vmeas, imeas, vstd, istd)
-
-            if rtplot:
-                line1.set_xdata(vmeas)
-                line1.set_ydata(imeas)
-                fig.canvas.draw()
-                fig.canvas.flush_events()
-                plt.pause(0.001)
-
-            vmeas_arr.append(vmeas)
-            imeas_arr.append(imeas)
-            vstd_arr.append(vstd)
-            istd_arr.append(istd)
-
-        self.output_off()
-        self.varr = vmeas_arr
-        self.iarr = imeas_arr
-        if rtplot:
-            plt.show()
-
-        if ofname is not None:
-            if '.txt' not in ofname:
-                ofname += ".txt"
-
-            data = np.array([vset_arr, vmeas_arr, imeas_arr, vstd_arr, istd_arr]).T
-            hdr = f"I-V measurement using Keithley 2400, Navg={navg}\n" 
-            hdr += f"V_set, V_meas, I_meas, V_std, I_std"
-            np.savetxt(ofname, data, header=hdr, fmt="%+.8e")
-
-        return vset_arr, vmeas_arr, imeas_arr
-
-    def plot_IV(self, varr=None, iarr=None, show=True, ofname=None):
-        if varr is None:
-            varr = self.varr
-
-        if iarr is None:
-            iarr = self.iarr
-
-        plt.plot(varr, iarr, '*-')
-        plt.xlabel('bias voltage (V)')
-        plt.ylabel('current (A)')
-        plt.tight_layout()
-
-        if ofname is not None:
-            if '.png' not in ofname:
-                ofname += ".png"
-            plt.savefig(ofname)
-
-        if show:
-            plt.show()
+        return 0

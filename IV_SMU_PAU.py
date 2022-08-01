@@ -16,15 +16,15 @@ smuI = []
 pau = []
 
 opathroot = r'C:\LGAD_test\I-V_test'
-sensorname = 'FBK_2022v1_2x2_46_T10'
-Nmeas = 'measurement2'
+sensorname = 'FBK_2022v1_2x2_13_T9'
+Nmeas = 'test'
 
-Npad = 4
+Npad = 1
 
 V0 = 0
-V1 = -350
-npts = 351
-return_sweep = True
+V1 = -250
+npts = 251
+return_sweep = False
 
 date = getdate()
 

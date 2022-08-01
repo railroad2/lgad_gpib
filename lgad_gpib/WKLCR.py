@@ -2,13 +2,14 @@ import numpy as np
 import time
 
 import numpy as np
-import pylab as plt
 import pyvisa
 
 class WKLCR():
     inst = []
     onoff = 0
-    delay = 0.005
+    srcdelay = 0.1
+    Vdc = 0
+    vstep = 1
 
     def __init__(self, rname):
         rm = pyvisa.ResourceManager()
@@ -17,8 +18,9 @@ class WKLCR():
             self.inst.read_termination = '\n'
             self.inst.write_termination = '\n'
 
-        idn = self.inst.query("*IDN?")
-        if 'WAYNE' not in idn:
+        self.rname = rname
+        self.idn = self.inst.query("*IDN?")
+        if ('WAYNE KERR' not in self.idn):
             print ('Incorrect device is assigned...')
             self.inst = []
             return 
@@ -32,13 +34,14 @@ class WKLCR():
         self.onoff = 0
         self.inst.write("*RST")
 
-    def initialize(self):
-        self.onoff = 0
+    def initialize(self): 
         self.reset()
+        self.inst.write(":MEAS:NUM-OF-TESTS 1")
         self.inst.write(':MEAS:FUNC1 C')
-        self.inst.write(':MEAS:FUNC1 R')
-        self.inst.write(':MEAS:FREQ 20')
+        self.inst.write(':MEAS:FUNC2 R')
+        self.inst.write(':MEAS:FREQ 1000')
         self.inst.write(':MEAS:LEV 0.1')
+        self.inst.write(':MEAS:SPEED MED')
 
     def read(self):
         val = self.inst.query(":READ?")
@@ -51,117 +54,58 @@ class WKLCR():
         self.inst.write(f":MEAS:FREQ {freq}")
         pass
 
-    def check_freq(self, freq):
+    def get_freq(self, freq):
         return self.inst.query(f":MEAS:FREQ?")
 
-    def set_dc_volt(self, volt):
-        ## need implementation
-        #self.inst.write(f":meas:volt {volt}")
-        time.sleep(self.delay)
+    def set_source_volt(self, vset):
+        if self.onoff:
+            vcurr = self.get_source_volt()
+            vdiff = vset - vcurr
+            if abs(vdiff) > 5:
+                self._set_source_volt_slow(vset)
+
+        self.inst.write(f":MEAS:V-BIAS {vset}V")
+        self.Vdc = vset
+        time.sleep(self.srcdelay)
+
+    def get_source_volt(self):
+        return float(self.inst.query(f":MEAS:V-BIAS?"))
 
     def output_on(self):
-        ## need implementation
-        #self.inst.write("OUTP ON")
+        vset = self.get_source_volt()
+        self.set_source_volt(0)
         self.onoff = 1
 
-    def output_off(self):
-        ## need implementation
-        #self.inst.write("OUTP OFF")
-        self.onoff = 0
-
-    def measure_CF(self, fstart, fstop, npts=11, logf=True, navg=1, ofname=None, reverse=False, rtplot=False):
-        if logf:
-            fset_arr = np.linspace(np.log10(fstart), np.log10(fstop), npts)
-            fset_arr = 10**fset_arr
+        if self.get_source_volt() == 0:
+            self.inst.write(":MEAS:BIAS ON")
         else:
-            fset_arr = np.linspace(fstart, fstop, npts)
-        ## need implemetation
-        pass
+            self.set_source_volt(0)
+            self.inst.write(":MEAS:BIAS ON")
 
-    def measure_CV(self):
-        ## need implemetation
-        pass
+        self.set_source_volt(vset)
 
-    def measure_IV(self, vstart, vstop, npts=11, navg=1, ofname=None, reverse=True, rtplot=True):
-        vset_arr = np.linspace(vstart, vstop, npts)
-        if reverse:
-            vset_arr = np.concatenate([vset_arr, vset_arr[::-1]])
-            
-        vmeas_arr = []
-        imeas_arr = []
-        vstd_arr = []
-        istd_arr = []
-        self.initialize()
-        self.inst.write(":FORM:ELEM VOLT,CURR")
-        self.set_source_volt(0)
-        self.output_on()
-         
-        if rtplot:
-            #plt.ion()
-            fig, ax = plt.subplots()
-            line1, = ax.plot([0], [0])
+    def output_off(self):
+        if self.get_source_volt() == 0:
+            self.inst.write(":MEAS:BIAS OFF")
+        else:
+            self.set_source_volt(0)
+            self.inst.write(":MEAS:BIAS OFF")
+        self.onoff = 0
+    
+    def _set_source_volt_slow(self, vset):
+        if  self.onoff == 0:
+            print("Please turn the output on first. Terminating...")
+            return -1
 
-        for vset in vset_arr:
-            self.set_source_volt(vset)
-            vmeas_list = []
-            imeas_list = []
-            for i in range(navg):
-                vmeas, imeas = self.read()
-                vmeas_list.append(vmeas)
-                imeas_list.append(imeas)
-                
-            vmeas = np.average(vmeas_list)
-            vstd = np.std(vmeas_list)
-            imeas = np.average(imeas_list)
-            istd = np.std(imeas_list)
-            
-            print (vset, vmeas, imeas, vstd, istd)
+        print ("Please wait. Sweeping the dc voltage...")
+        vcurr = self.get_source_volt()
+        vstep = self.vstep * np.sign(vset - vcurr) 
+        varr = np.arange(vcurr, vset, vstep)
+        for v in varr:
+            self.inst.write(f":SOUR:VOLT:LEV {v}")
+            self.vcurr = v
+            time.sleep(self.srcdelay)
 
-            if rtplot:
-                line1.set_xdata(vmeas)
-                line1.set_ydata(imeas)
-                fig.canvas.draw()
-                fig.canvas.flush_events()
-                plt.pause(0.001)
+        self.inst.write(f":SOUR:VOLT:LEV {vset}")
 
-            vmeas_arr.append(vmeas)
-            imeas_arr.append(imeas)
-            vstd_arr.append(vstd)
-            istd_arr.append(istd)
-
-        self.output_off()
-        self.varr = vmeas_arr
-        self.iarr = imeas_arr
-        if rtplot:
-            plt.show()
-
-        if ofname is not None:
-            if '.txt' not in ofname:
-                ofname += ".txt"
-
-            data = np.array([vset_arr, vmeas_arr, imeas_arr, vstd_arr, istd_arr]).T
-            hdr = f"I-V measurement using Keithley 2400, Navg={navg}\n" 
-            hdr += f"V_set, V_meas, I_meas, V_std, I_std"
-            np.savetxt(ofname, data, header=hdr, fmt="%+.8e")
-
-        return vset_arr, vmeas_arr, imeas_arr
-
-    def plot_IV(self, varr=None, iarr=None, show=True, ofname=None):
-        if varr is None:
-            varr = self.varr
-
-        if iarr is None:
-            iarr = self.iarr
-
-        plt.plot(varr, iarr, '*-')
-        plt.xlabel('bias voltage (V)')
-        plt.ylabel('current (A)')
-        plt.tight_layout()
-
-        if ofname is not None:
-            if '.png' not in ofname:
-                ofname += ".png"
-            plt.savefig(ofname)
-
-        if show:
-            plt.show()
+        return 0
