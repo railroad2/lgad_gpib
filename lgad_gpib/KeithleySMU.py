@@ -6,7 +6,6 @@ import pylab as plt
 import pyvisa
 
 class KeithleySMU():
-    # default parameters
     inst = []
     onoff = 0
     srcdelay = 0.01
@@ -51,6 +50,15 @@ class KeithleySMU():
 
         return val
 
+    def set_source_range(self, vset):
+        self.inst.write(f":SOUR:VOLT:RANG {vset}")
+
+    def set_compliance(self, iset):
+        if iset > 100e-6:
+            print ("Warning: You're trying to set the compliance too high. Please consider to reduce it.")
+
+        self.inst.write(f":SENS:CURR:PROT {iset}")
+
     def get_source_volt(self):
         return float(self.inst.query(":SOUR:VOLT:LEV?"))
 
@@ -65,22 +73,6 @@ class KeithleySMU():
 
         return 
 
-    def _set_source_volt_slow(self, vset):
-        if self.onoff == 0:
-            print("Please turn the output on first. Terminating...")
-            return -1
-
-        print ("Please wait. Sweeping the source voltage...")
-        vcurr = self.get_source_volt()
-        vstep = self.vstep * np.sign(vset - vcurr) 
-        varr = np.arange(vcurr, vset, vstep)
-        for v in varr:
-            self.inst.write(f":SOUR:VOLT:LEV {v}")
-            self.vcurr = v
-            time.sleep(self.srcdelay)
-
-        return 0
-
     def output_on(self):
         if abs(self.vcurr) > self.vjump_max:
             self.inst.write(":SOUR:VOLT:LEV 0")
@@ -94,5 +86,21 @@ class KeithleySMU():
     def output_off(self):
         self.inst.write("OUTP OFF")
         self.onoff = 0
+
+        return 0
+
+    def _set_source_volt_slow(self, vset):
+        if self.onoff == 0:
+            print("Please turn the output on first. Terminating...")
+            return -1
+
+        print ("Please wait. Sweeping the source voltage...")
+        vcurr = self.get_source_volt()
+        vstep = self.vstep * np.sign(vset - vcurr) 
+        varr = np.arange(vcurr, vset, vstep)
+        for v in varr:
+            self.inst.write(f":SOUR:VOLT:LEV {v}")
+            self.vcurr = v
+            time.sleep(self.srcdelay)
 
         return 0

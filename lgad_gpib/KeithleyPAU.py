@@ -39,7 +39,7 @@ class KeithleyPAU():
 
     def initialize(self):
         self.reset()
-        self.setzero()
+        #self.setzero()
 
     def read(self):
         time.sleep(self.delay)
